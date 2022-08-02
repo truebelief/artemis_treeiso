@@ -53,16 +53,21 @@ The laz file will include three additional fields:
 Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel Core i7-9700K and 16GB RAM.
 
 Example isolated trees from a plot:  
-|Raw TLS Example1| After treeiso isolation|
-|:---:|:---:|
-|<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
+|Raw TLS Example1| After treeiso isolation| Top view|
+|:---:|:---:|:---:|
+|<img width="635" alt="demo1_crop" src="https://user-images.githubusercontent.com/8785889/182312969-7c81949f-67fa-409b-bb24-73b094917c52.png">|<img width="635" alt="demo1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182313130-7d6ba091-b2cb-4482-ae21-3ee2ec5bb34e.png">|<img width="700" alt="demo1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182313150-a14e7a3e-79b0-4d40-a400-ce89520e5e4d.png">|
 
-|Raw TLS Example2| After treeiso isolation|
-|:---:|:---:|
-|<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
 
-|Raw TLS Example3| After treeiso isolation|
-|:---:|:---:|
-|<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
+|Raw TLS Example2| After treeiso isolation| Top view|
+|:---:|:---:|:---:|
+|<img width="1354" alt="TAspen1_crop" src="https://user-images.githubusercontent.com/8785889/182315836-78bdd338-2678-4d29-bcce-1442777e6918.png">|<img width="1354" alt="TAspen1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182315950-f44937e2-0ec8-4b43-a980-0da9b7925534.png">|<img width="724" alt="TAspen1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182315979-d8e9c5ea-7a00-4490-8bab-c43fd6af9498.png">|
+
+
+|Raw TLS Example3| After treeiso isolation| Top view|
+|:---:|:---:|:---:|
+|<img width="1228" alt="NPoplar2_crop" src="https://user-images.githubusercontent.com/8785889/182318128-ddeac093-f48d-4e69-a9b2-560f5a25335e.png">|<img width="1228" alt="NPoplar2_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182318163-290e0663-4e0a-455c-85d5-5160f00a8e33.png">|<img width="1026" alt="NPoplar2_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182318398-fc428e17-1fd7-415c-9594-e0b9e3f0c340.png">|
+
+
+
 
 
