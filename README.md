@@ -29,6 +29,13 @@ It is also suggested to decimate the point cloud to reasonable resolution (~2cm)
 
 Ground points must be removed before tree isolation
 
+The mex files were all compiled under Windows 10 (64bit) Intel using Visual Studio 2019. If you need to compile on your own, please refer to the authors' sites for detailed steps.
+
+Links below:
+
+[cutpursuit](https://github.com/loicland/cut-pursuit)
+
+[mastools](https://github.com/plitkey/matlas_tools)
 
 ### 2. treeiso
 Run matlab code under Matlab\treeiso.m to isolate TLS trees
@@ -36,7 +43,7 @@ Type in the folder path where your laz files are located
 
 The treeiso.m will exhaustively search all laz files and run the treeiso for each laz file
 
-You can type in the data folder for a quick test. The treeiso.m will isolate trees from the LPine1_demo.laz file
+You can type in the data folder for a quick test. The treeiso.m will isolate trees from LPine1_demo.laz
 
 Result laz file will be saved to Matlab\output\
 
@@ -48,9 +55,16 @@ The laz file will include three additional fields:
 
 
 Example isolated trees from a plot:  
-|Raw TLS Example| After treeiso isolation|
+|Raw TLS Example1| After treeiso isolation|
 |:---:|:---:|
 |<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
 
+|Raw TLS Example2| After treeiso isolation|
+|:---:|:---:|
+|<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
+
+|Raw TLS Example3| After treeiso isolation|
+|:---:|:---:|
+|<img width="407" alt="tree_itc4" src="https://user-images.githubusercontent.com/8785889/153339986-63e9495b-4951-4252-a089-803e50dcd0b6.png">|<img width="513" alt="tree_itc5" src="https://user-images.githubusercontent.com/8785889/153341308-42afce5f-f8ea-4179-b0b1-3aef60c176f3.png">|
 
 
