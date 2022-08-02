@@ -1,6 +1,4 @@
-# artemis_treeiso
-
-Individual-tree isolation (treeiso) from terrestrial laser scanning point clouds
+# Individual-tree isolation (treeiso) from terrestrial laser scanning
 
 The University of Lethbridge - Department of Geography & Environment - Artemis Lab
 
@@ -53,6 +51,7 @@ The laz file will include three additional fields:
 2. interim_segs: show the 2nd-stage segmentation from 2D cut-pursuit
 3. segs: final tree segmentation
 
+Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel(R)i7-9700K@3.60GHz and 16GB RAM.
 
 Example isolated trees from a plot:  
 |Raw TLS Example1| After treeiso isolation|
