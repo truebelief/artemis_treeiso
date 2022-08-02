@@ -2,7 +2,7 @@
 TLS tree isolation/segmentation code (treeiso)
 
 ## Folder structure
-.
+
     ├── data                                # All raw data
     │   ├── LPine_plot1_reference_demo.laz  # Example TLS data
     ├── Matlab                              # treeiso Matlab Source code 
