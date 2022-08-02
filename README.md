@@ -25,11 +25,11 @@ If you use your own TLS data, it is recommended to clean the point clouds and re
 
 It is also suggested to decimate the point cloud to reasonable resolution (~2cm)
 
-Ground points must be removed before tree isolation
+Ground points must be removed prior to tree isolation
 
-The mex files were all compiled under Windows 10 (64bit) Intel using Visual Studio 2019. If you need to compile on your own, please refer to the authors' sites for detailed steps.
 
-Links below:
+**
+The mex files were all compiled under Windows 10 (64bit) Intel using Visual Studio 2019. If you need to compile on your own, please refer to the authors' sites for detailed steps. Links below:
 
 [cutpursuit](https://github.com/loicland/cut-pursuit), [mastools](https://github.com/plitkey/matlas_tools)
 
@@ -52,7 +52,7 @@ The laz file will include three additional fields:
 
 Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel Core i7-9700K and 16GB RAM.
 
-Example isolated trees from a plot:  
+Example isolated trees:  
 |Raw TLS Example1| After treeiso isolation| Top view|
 |:---:|:---:|:---:|
 |<img width="635" alt="demo1_crop" src="https://user-images.githubusercontent.com/8785889/182312969-7c81949f-67fa-409b-bb24-73b094917c52.png">|<img width="635" alt="demo1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182313130-7d6ba091-b2cb-4482-ae21-3ee2ec5bb34e.png">|<img width="700" alt="demo1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182313150-a14e7a3e-79b0-4d40-a400-ce89520e5e4d.png">|
