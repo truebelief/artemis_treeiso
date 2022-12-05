@@ -4,6 +4,10 @@ The University of Lethbridge - Department of Geography & Environment - Artemis L
 
 Author - Zhouxin Xi (zhouxin.xi@uleth.ca) and Prof. Chris Hopkinson (c.hopkinson@uleth.ca)
 
+Please cite:
+
+<cite>Xi, Z.; Hopkinson, C. 3D Graph-Based Individual-Tree Isolation (_Treeiso_) from Terrestrial Laser Scanning Point Clouds. _Remote Sens_. **2022**, _14_, 6116. https://doi.org/10.3390/rs14236116</cite>
+
 ## Folder structure
 
     ├── data                                    # All raw data
