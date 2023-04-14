@@ -468,6 +468,8 @@ bool TreeIso::final_seg_pcd(ccPointCloud* pc, const unsigned PR_MIN_NN3, const f
 			float sigmaD = mds[1];
 
 			std::vector<int> toMergeIds;
+			std::vector<int> toMergeCandidateIds;
+			std::vector<float> toMergeCandidateMetrics;
 			for (int i = 0; i < nGroups; ++i)
 			{
 				std::vector<size_t> nnGroupId = groupNNIdxC[i];
@@ -485,14 +487,22 @@ bool TreeIso::final_seg_pcd(ccPointCloud* pc, const unsigned PR_MIN_NN3, const f
 
 				if (abs(currentGroupRelHt) > PR_REL_HEIGHT_LENGTH_RATIO) {
 					if (iter == 1) {
-						if (lenFeatures[i] / mean_col(lenFeatures) > 1.5) {
+						float initialLenRatio = lenFeatures[i] / median_col(lenFeatures);
+						if (initialLenRatio > 1.5) {
 							toMergeIds.push_back(i);
 						}
+						toMergeCandidateIds.push_back(i);
+						toMergeCandidateMetrics.push_back(initialLenRatio);
 					}
 					else {
 						toMergeIds.push_back(i);
 					}
+
 				}
+			}
+			if ((iter == 1) & (toMergeIds.size() == 0)) {
+				int cand_ind = arg_max_col(toMergeCandidateMetrics);
+				toMergeIds.push_back(toMergeCandidateIds[cand_ind]);
 			}
 
 
@@ -1187,6 +1197,8 @@ bool TreeIso::final_seg(const unsigned PR_MIN_NN3, const float PR_REL_HEIGHT_LEN
 			float sigmaD = mds[1];
 
 			std::vector<int> toMergeIds;
+			std::vector<int> toMergeCandidateIds;
+			std::vector<float> toMergeCandidateMetrics;
 			for (int i = 0; i < nGroups; ++i)
 			{
 				std::vector<size_t> nnGroupId = groupNNIdxC[i];
@@ -1204,16 +1216,23 @@ bool TreeIso::final_seg(const unsigned PR_MIN_NN3, const float PR_REL_HEIGHT_LEN
 
 				if (abs(currentGroupRelHt) > PR_REL_HEIGHT_LENGTH_RATIO) {
 					if (iter == 1) {
-						if (lenFeatures[i] / mean_col(lenFeatures) > 1.5) {
+						float initialLenRatio=lenFeatures[i] / median_col(lenFeatures);
+						if (initialLenRatio > 1.5) {
 							toMergeIds.push_back(i);
 						}
+						toMergeCandidateIds.push_back(i);
+						toMergeCandidateMetrics.push_back(initialLenRatio);
 					}
 					else {
 						toMergeIds.push_back(i);
 					}
+
 				}
 			}
-
+			if ((iter == 1) & (toMergeIds.size() == 0)) {
+				int cand_ind= arg_max_col(toMergeCandidateMetrics);
+				toMergeIds.push_back(toMergeCandidateIds[cand_ind]);
+			}
 
 			std::vector<int> remainIds;
 			std::vector<int> allIds(nGroups);
@@ -1883,7 +1902,12 @@ size_t arg_min_col(std::vector<T>& arr) {
 	std::size_t min_index = std::distance(arr.begin(), min_element_it);
 	return min_index;
 }
-
+template <typename T>
+size_t arg_max_col(std::vector<T>& arr) {
+	auto max_element_it = std::max_element(arr.begin(), arr.end());
+	std::size_t max_index = std::distance(arr.begin(), max_element_it);
+	return max_index;
+}
 template <typename T>
 void min_col(std::vector<std::vector<T>>& arr, std::vector<T>& min_vals) {
 
@@ -1911,6 +1935,23 @@ T mean_col(std::vector<T>& arr) {
 	float average = sum / arr.size();
 	return average;
 }
+
+template <typename T>
+T median_col(std::vector<T>& arr) {
+	size_t n = arr.size();
+	// Sort the vector
+	std::sort(arr.begin(), arr.end());
+	// Calculate the median
+	if (n % 2 == 0) {
+		return (arr[n / 2 - 1] + arr[n / 2]) / 2.0;
+	}
+	else {
+		return arr[n / 2];
+	}	
+}
+
+
+
 
 template <typename T>
 void max_col(std::vector<std::vector<T>>& arr, std::vector<T>& max_vals) {
