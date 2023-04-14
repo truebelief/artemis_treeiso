@@ -1,5 +1,7 @@
 # Individual-tree isolation (treeiso) from terrestrial laser scanning
 
+### **`CloudCompare Plugin was developed now!`**
+
 The University of Lethbridge - Department of Geography & Environment - Artemis Lab
 
 Author - Zhouxin Xi (zhouxin.xi@uleth.ca) and Prof. Chris Hopkinson (c.hopkinson@uleth.ca)
