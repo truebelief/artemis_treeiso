@@ -8,6 +8,13 @@ Please cite:
 
 <cite>Xi, Z.; Hopkinson, C. 3D Graph-Based Individual-Tree Isolation (_Treeiso_) from Terrestrial Laser Scanning Point Clouds. _Remote Sens_. **2022**, _14_, 6116. https://doi.org/10.3390/rs14236116</cite>
 
+
+This tool relies on the cut-pursuit algorithm, please also consider citing:
+
+<cite> Landrieu, L.; Obozinski, G. Cut Pursuit: Fast Algorithms to Learn Piecewise Constant Functions on General Weighted Graphs. SIAM J. Imaging Sci. 2017, 10, 1724–1766. [hal link](https://hal.archives-ouvertes.fr/hal-01306779)</cite>
+
+<cite> Raguet, H.; Landrieu, L. Cut-pursuit algorithm for regularizing nonsmooth functionals with graph total variation. In Proceedings of the International Conference on Machine Learning, Stockholm, Sweden, 10–15 July 2018; Volume 80, pp. 4247–4256.</cite>
+
 ## Folder structure
 
     ├── data                                    # All raw data
