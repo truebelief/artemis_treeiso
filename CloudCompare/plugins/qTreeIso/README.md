@@ -53,3 +53,12 @@ Available options
 		</td>
 	</tr>
 </table>
+
+|Initial segmentation| Intermediate | Final|
+|:---:|:---:|:---:|
+|<img width="635" alt="step1_seg" src="https://user-images.githubusercontent.com/8785889/232014324-e43e1a8e-860c-42a5-8cb3-70e0de05060b.jpg">|<img width="635" alt="step2_seg" src="https://user-images.githubusercontent.com/8785889/232015005-6fb32401-131a-488f-9c26-20733fdaddb1.jpg">|<img width="700" alt="step3_seg" src="https://user-images.githubusercontent.com/8785889/232015169-4a055ba8-5df0-4149-9300-47b1d1154d87.jpg">|
+
+
+
+
+
