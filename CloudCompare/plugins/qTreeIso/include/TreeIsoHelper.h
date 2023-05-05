@@ -57,11 +57,13 @@ void perform_cut_pursuit2d(const unsigned K, const float regStrength, std::vecto
 ccPointCloud* partial_pcd(ccPointCloud* pc, std::vector<size_t> ia);
 
 template <typename T>size_t arg_min_col(std::vector<T>& arr);
+template <typename T>size_t arg_max_col(std::vector<T>& arr);
 template <typename T> void min_col(std::vector<std::vector<T>>& arr, std::vector<T>&);
 template <typename T> T min_col(std::vector<T>& arr);
 template <typename T> void max_col(std::vector<std::vector<T>>& arr, std::vector<T>&);
 template <typename T>void mean_col(std::vector<std::vector<T>>& arr, std::vector<T>&);
 template <typename T> T mean_col(std::vector<T>& arr);
+template <typename T> T median_col(std::vector<T>& arr);
 template <typename T> void decimate_vec(std::vector<std::vector<T>>& arr, float res, std::vector<std::vector<T>>&);
 
 template <typename T> void unique_group(std::vector<T>& arr, std::vector<std::vector<T>>& u_group, std::vector<T>& arr_unq, std::vector<T>& ui);
@@ -78,6 +80,7 @@ template <typename T1, typename T2> void get_subset(std::vector<T1>& arr, std::v
 
 void knn_cpp_nearest_neighbors(const std::vector<std::vector<float>>& dataset, size_t k, std::vector <std::vector<size_t>>& res_idx, std::vector <std::vector<float>>& res_dists, int n_thread);
 void knn_cpp_build(knncpp::KDTreeMinkowskiX<float, knncpp::EuclideanDistance<float>>& kdtree, int n_thread);
+void knn_cpp_build(knncpp::KDTreeMinkowskiX<float, knncpp::EuclideanDistance<float>>& kdtree);
 void knn_cpp_query(knncpp::KDTreeMinkowskiX<float, knncpp::EuclideanDistance<float>>& kdtree, Eigen::MatrixXf& query_points, size_t k, std::vector <std::vector<size_t>>& res_idx, std::vector <std::vector<float>>& res_dists);
 float knn_cpp_query_min_d(knncpp::KDTreeMinkowskiX<float, knncpp::EuclideanDistance<float>>& kdtree, Eigen::MatrixXf& query_points, size_t k);
 
