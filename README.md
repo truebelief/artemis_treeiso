@@ -74,7 +74,7 @@ The laz file will include three additional fields:
 
 Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel Core i7-9700K and 16GB RAM.
 
-#### Python (Uploaded on Jan 25, 2024)
+#### Python (Uploaded on Jan 25, 2025)
 
 Run Python code under Python\treeiso.py to isolate TLS trees. 
 
