@@ -2,6 +2,8 @@
 
 ### **`CloudCompare Plugin was developed now!`**
 
+### **`Python version was developed now!`**
+
 The University of Lethbridge - Department of Geography & Environment - Artemis Lab
 
 Author - Zhouxin Xi (zhouxin.xi@uleth.ca) and Prof. Chris Hopkinson (c.hopkinson@uleth.ca)
@@ -21,8 +23,8 @@ This tool relies on the cut-pursuit algorithm, please also consider citing:
 
     ├── data                                    # All raw data
     │   ├── LPine1_demo.laz                     # Example TLS data (just a subset from a TLS plot due to the file size limit)
-    ├── Matlab                                  # treeiso Matlab Source code 
-    │   ├── treeiso.m                           # Main program
+    ├── Matlab                                  # treeiso Matlab source code 
+    │   ├── treeiso.m                           # Main Matlab program
     │   ├── cutPursuit.m                        # Wrapper of L0 cut-pursuit mex code
     │   ├── jitknnsearch.m                      # Matlab jit accelerated knnsearch - fast knnsearch from small amount of points
     │   ├── overlapping.m                       # Used to calculate overlap ratio between a pair of crown convex hulls
@@ -30,6 +32,10 @@ This tool relies on the cut-pursuit algorithm, please also consider citing:
     │   ├── L0_cut_pursuit_segmentation.mexw64  # compiled L0 cut pursuit program
     │   ├── las2mat.mexw64                      # compiled las/laz file reading program
     │   ├── mat2las.mexw64                      # compiled las/laz file writing program
+    ├── Python                                  # treeiso Python source code 
+    │   ├── treeiso.py                          # Main python program
+    │   ├── cut_pursuit_L2.py                   # Cut-pursuit python version (simplified and L2 norm only)
+    │   ├── cut_pursuit_L2_replica_cpp.py       # Cut-pursuit python version (closer to the original C++ version but slower, only for information)
     ├── LICENSE
     └── README.md
 
@@ -47,7 +53,10 @@ The mex files were all compiled under Windows 10 (64bit) Intel using Visual Stud
 [cutpursuit](https://github.com/loicland/cut-pursuit), [mastools](https://github.com/plitkey/matlas_tools)
 
 ### 2. treeiso
-Run matlab code under Matlab\treeiso.m to isolate TLS trees
+
+#### Matlab
+
+Run Matlab code under Matlab\treeiso.m to isolate TLS trees
 
 Type in the folder path where your laz files are located
 
@@ -65,7 +74,18 @@ The laz file will include three additional fields:
 
 Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel Core i7-9700K and 16GB RAM.
 
-Example isolated trees:  
+#### Python (Uploaded on Jan 25, 2024)
+
+Run Python code under Python\treeiso.py to isolate TLS trees. 
+
+`python treeiso.py`
+
+Like the Matlab version, type in the folder path where your laz files are located.
+
+The result laz file will be saved to the same input folder you provided.
+
+
+#### Example isolated trees: 
 |Raw TLS Example1| After treeiso isolation| Top view|
 |:---:|:---:|:---:|
 |<img width="635" alt="demo1_crop" src="https://user-images.githubusercontent.com/8785889/182312969-7c81949f-67fa-409b-bb24-73b094917c52.png">|<img width="635" alt="demo1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182313130-7d6ba091-b2cb-4482-ae21-3ee2ec5bb34e.png">|<img width="700" alt="demo1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182313150-a14e7a3e-79b0-4d40-a400-ce89520e5e4d.png">|
