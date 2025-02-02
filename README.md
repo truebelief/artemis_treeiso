@@ -1,6 +1,8 @@
 # Individual-tree isolation (treeiso) from terrestrial laser scanning
 
-### **`CloudCompare Plugin was developed (created - May 2023, upgraded - February 2025)!`**
+### **`CloudCompare Plugin was developed (May 2023)!`**
+
+A new upgrade in February 2025 boosts the speed by 5-15x. Await to be integrated into CloudCompare
 
 ### **`Python version was developed now (January 2025)!`**
 
