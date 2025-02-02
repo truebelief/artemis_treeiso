@@ -1,8 +1,8 @@
 # Individual-tree isolation (treeiso) from terrestrial laser scanning
 
-### **`CloudCompare Plugin was developed now!`**
+### **`CloudCompare Plugin was developed (created - May 2023, upgraded - February 2025)!`**
 
-### **`Python version was developed now!`**
+### **`Python version was developed now (January 2025)!`**
 
 The University of Lethbridge - Department of Geography & Environment - Artemis Lab
 
