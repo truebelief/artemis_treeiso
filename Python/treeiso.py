@@ -276,8 +276,21 @@ def final_segs(pcd):
             groupFeatures[i, :3]=trimmean(groupPts[:, :3], 0.2) # centroid
             groupFeatures[i, 3] = np.min(groupPts[:, 2]) # elevation
             groupFeatures[i, 4] = np.max(groupPts[:, 2])-min(groupPts[:, 2]) # length
-            if len(groupPts) > 3:
-                groupHulls[i] = groupPts[ConvexHull(groupPts[:,:2]).vertices,:2]
+            try:
+                hull = ConvexHull(groupPts[:, :2])
+                groupHulls[i] = groupPts[hull.vertices, :2]
+            except Exception:
+                # If ConvexHull fails, create a simple bounding box instead
+                mins = np.min(groupPts[:, :2], axis=0)
+                maxs = np.max(groupPts[:, :2], axis=0)
+                groupHulls[i] = np.array([
+                    [mins[0], mins[1]],
+                    [maxs[0], mins[1]],
+                    [maxs[0], maxs[1]],
+                    [mins[0], maxs[1]]
+                ])
+            # if len(groupPts) > 3:
+            #     groupHulls[i] = groupPts[ConvexHull(groupPts[:,:2]).vertices,:2]
 
         # Search nearest k tree segments for each tree segments
         kdtree = cKDTree(groupFeatures[:, :2])
@@ -322,7 +335,7 @@ def final_segs(pcd):
                 line2Ends = [groupFeatures[remainId, 3], groupFeatures[remainId, 3] + groupFeatures[remainId, 4]]
                 lineSegs = [(line2Ends[1]- line1Ends[0]), (line1Ends[1] - line2Ends[0])]
                 verticalOverlapRatio = np.min(lineSegs) / np.max(lineSegs)
-                if len(groupHulls[toMergeId]) > 3 and len(groupHulls[remainId]) > 3:
+                if groupHulls[toMergeId] is not None and groupHulls[remainId] is not None:
                     horizontalOverlapRatio = overlapping(groupHulls[toMergeId], groupHulls[remainId])
                 else:
                     horizontalOverlapRatio = 0.0
