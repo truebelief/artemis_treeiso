@@ -2,7 +2,7 @@
 
 ### **`CloudCompare Plugin was developed (May 2023)!`**
 
-A new upgrade in February 2025 boosts the speed by 5-15x. Await to be integrated into CloudCompare
+A new upgrade in February 2025 boosts the speed by 5-15x. Integrated into CloudCompare 2.14.alpha now (Windows only).
 
 ### **`Python version was developed now (January 2025)!`**
 
