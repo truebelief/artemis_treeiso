@@ -9,7 +9,7 @@ import numpy_indexed as npi
 from scipy.spatial import cKDTree, ConvexHull
 from skimage import draw
 
-from cut_pursuit_L2 import perform_cut_pursuit, cut_pursuit
+from cut_pursuit_L2 import cut_pursuit
 
 # Parameters
 PR_REG_STRENGTH1 = 1.0  # lambda1
@@ -269,6 +269,9 @@ def final_segs(pcd):
 
         # Extract features for each tree segment (e.g. convexhull)
         nGroups=len(groupVGroup)
+        if nGroups==1:
+            break
+        
         groupFeatures=np.zeros([nGroups,5])
         groupHulls=[None]*nGroups
         for i in range(nGroups):
@@ -295,7 +298,8 @@ def final_segs(pcd):
         # Search nearest k tree segments for each tree segments
         kdtree = cKDTree(groupFeatures[:, :2])
         groupNNCDs, groupNNIdxC = kdtree.query(groupFeatures[:, :2], k=min(len(groupFeatures),PR_MIN_NN3))
-
+        groupNNCDs = np.transpose(groupNNCDs)[:, np.newaxis] if groupNNCDs.ndim == 1 else groupNNCDs
+        
         sigmaD=np.mean(groupNNCDs[:,1]) # Mean centroid distance between segments
 
         toMergeIds=np.zeros(nGroups,dtype=np.int32)
@@ -323,11 +327,12 @@ def final_segs(pcd):
         # Search nearest k tree segments for remaining segments
         kdtree = cKDTree(groupFeatures[remainIds, :2])
         _, groupNNIdx = kdtree.query(groupFeatures[toMergeIds, :2], k=min(PR_MIN_NN3, len(remainIds)))
-
+        groupNNIdx=np.transpose(groupNNIdx)[:,np.newaxis]  if groupNNIdx.ndim ==1 else groupNNIdx
+        nNNs = groupNNIdx.shape[1]
+        
         # Calculate similarity score based on gaps and overlaps
         for i,toMergeId in enumerate(toMergeIds):
             currentClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[toMergeId]]),:]
-            nNNs = groupNNIdx.shape[1]
             filterMetrics = np.zeros([nNNs, 5])
             for j in range(nNNs):
                 remainId = remainIds[groupNNIdx[i, j]]
@@ -382,7 +387,7 @@ def final_segs(pcd):
 
     kdtree = cKDTree(groupFeatures[unmergeIds, :2])
     _, groupNNIdx = kdtree.query(groupFeatures[mergedRemainIds, :2], k=min(PR_MIN_NN3, len(mergedRemainIds)))
-
+    groupNNIdx = np.transpose(groupNNIdx)[:, np.newaxis] if groupNNIdx.ndim == 1 else groupNNIdx
     nNNs = groupNNIdx.shape[1]
 
     for i,unmergeId in enumerate(unmergeIds):
