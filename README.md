@@ -2,7 +2,7 @@
 
 ### **`CloudCompare Plugin was developed (May 2023)!`**
 
-A new upgrade in February 2025 boosts the speed by 5-15x. Await to be integrated into CloudCompare
+A new upgrade in February 2025 boosts the speed by 5-15x. Integrated into CloudCompare 2.14.alpha now (Windows only).
 
 ### **`Python version was developed now (January 2025)!`**
 
@@ -41,22 +41,14 @@ This tool relies on the cut-pursuit algorithm, please also consider citing:
     ├── LICENSE
     └── README.md
 
-### 1. Preprocessing requirements
+## 1. Preprocessing requirements
 If you use your own TLS data, it is recommended to clean the point clouds and remove the noise, e.g. using CloudCompare(Sober filter,NN=10,std=1)
 
 It is also suggested to decimate the point cloud to reasonable resolution (~2cm)
 
 Ground points must be removed prior to tree isolation
 
-
-**
-The mex files were all compiled under Windows 10 (64bit) Intel using Visual Studio 2019. If you need to compile on your own, please refer to the authors' sites for detailed steps. Links below:
-
-[cutpursuit](https://github.com/loicland/cut-pursuit), [mastools](https://github.com/plitkey/matlas_tools)
-
-### 2. treeiso
-
-#### Matlab
+## 2. Matlab
 
 Run Matlab code under Matlab\treeiso.m to isolate TLS trees
 
@@ -76,18 +68,46 @@ The laz file will include three additional fields:
 
 Please be patient: processing a laz file of ~25MB costs about 10 minutes using Intel Core i7-9700K and 16GB RAM.
 
-#### Python (Uploaded on Jan 25, 2025)
+**
+The mex files were all compiled under Windows 10 (64bit) Intel using Visual Studio 2019. If you need to compile on your own, please refer to the authors' sites for detailed steps. Links below:
 
-Run Python code under Python\treeiso.py to isolate TLS trees. 
+[cutpursuit](https://github.com/loicland/cut-pursuit), [mastools](https://github.com/plitkey/matlas_tools)
 
-`python treeiso.py`
+## 3. Python (Uploaded on Jan 25, 2025)
 
-Like the Matlab version, type in the folder path where your laz files are located.
+### 3.1 Prerequisites
+
+- Python 3.7+
+- May need C++ compiler (for PyMaxflow installation)
+
+### 3.2 Installation
+
+1. Clone or download the repository:
+```bash
+git clone https://github.com/artemislab/treeiso.git
+cd treeiso/Python
+```
+
+2. Install the dependencies using requirements.txt:
+```bash
+pip install -r requirements.txt
+```
+
+3. You can now run the scripts directly from the repository directory.
+
+### 3.3 Usage
+
+TreeIso can be run directly from the command line interface:
+
+```bash
+python treeiso.py
+```
+
+When prompted, enter the path to your directory containing LAS/LAZ files. 
 
 The result laz file will be saved to the same input folder you provided.
 
-
-#### Example isolated trees: 
+## Example isolated trees: 
 |Raw TLS Example1| After treeiso isolation| Top view|
 |:---:|:---:|:---:|
 |<img width="635" alt="demo1_crop" src="https://user-images.githubusercontent.com/8785889/182312969-7c81949f-67fa-409b-bb24-73b094917c52.png">|<img width="635" alt="demo1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182313130-7d6ba091-b2cb-4482-ae21-3ee2ec5bb34e.png">|<img width="700" alt="demo1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182313150-a14e7a3e-79b0-4d40-a400-ce89520e5e4d.png">|
