@@ -8,14 +8,14 @@ import numpy as np
 import numpy_indexed as npi
 from scipy.spatial import cKDTree, ConvexHull
 from skimage import draw
+import pandas as pd
 
-from cut_pursuit_L2 import perform_cut_pursuit, cut_pursuit
 
 # Parameters
 PR_REG_STRENGTH1 = 1.0  # lambda1
 PR_MIN_NN1 = 5  # K1: key parameter
 
-PR_REG_STRENGTH2 = 20  # lambda2: key parameter
+PR_REG_STRENGTH2 = 20.0  # lambda2: key parameter
 PR_MIN_NN2 = 20  # K2: key parameter
 
 PR_DECIMATE_RES1 = 0.05  # For speed optimization
@@ -28,6 +28,22 @@ PR_MIN_NN3 = 20  # trivial
 PR_SCORE_CANDIDATE_THRESH = 0.7  # No need to change
 PR_INIT_STEM_REL_LENGTH_THRESH = 1.5  # No need to change
 
+
+# Try to import the C++ version first, fall back to Python if not available
+USE_CPP = True
+try:
+    from cut_pursuit import perform_cut_pursuit
+    USE_CPP = True
+    print("Using optimized C++ implementation of Cut-Pursuit")
+except ImportError as e:
+    print(f"C++ implementation not available: {e}")
+    try:
+        from cut_pursuit_L0 import perform_cut_pursuit
+        USE_CPP = False
+        print("Using Python implementation of Cut-Pursuit (slower)")
+    except ImportError as e:
+        print(f"Failed to import Cut-Pursuit: {e}")
+        raise
 
 def overlapping(conv_hull1, conv_hull2):
     """Calculate the 2D horizontal overlapping ratio between two convex hulls.
@@ -93,7 +109,6 @@ def overlapping(conv_hull1, conv_hull2):
         overlap_ratio = 0
     return overlap_ratio
 
-
 def init_segs(pcd):
     """Initialize segments from point cloud data."""
     pcd=pcd[:, :3] - np.mean(pcd[:, :3], axis=0)
@@ -109,29 +124,21 @@ def init_segs(pcd):
 
     # Create edge list
     n_nodes = len(pcd)
-    n_obs = 3
-    n_edges = n_nodes * PR_MIN_NN1
 
     eu = np.repeat(np.arange(n_nodes), PR_MIN_NN1)
     ev = indices.ravel()
 
-    y = pcd[:, :3] - np.mean(pcd[:, :3], axis=0)
-
     # Edge weights following C++ implementation
-    edge_weight = np.ones_like(eu)
-    node_weight = np.ones(point_count)
+    edge_weight = np.ones_like(eu, dtype=np.float32)
 
-    solution, components, in_component, energy_out, time_out = cut_pursuit(
-        n_nodes=n_nodes,
-        n_edges=n_edges,
-        n_obs=n_obs,
-        observation=y,
-        eu=eu,
-        ev=ev,
-        edge_weight=edge_weight,
-        node_weight=node_weight,
-        lambda_=PR_REG_STRENGTH1,
-        verbose=True
+    in_component = perform_cut_pursuit(
+        reg_strength=PR_REG_STRENGTH1,
+        D=3,
+        pc_vec=pcd.astype(np.float32),
+        edge_weights=edge_weight,
+        Eu=eu.astype(np.uint32),
+        Ev=ev.astype(np.uint32),
+        verbose=True,
     )
     return in_component
 
@@ -149,7 +156,7 @@ def create_node_edges(points, k=10, max_distance=0.4):
 
     centroids = np.array([np.mean(points[idx, :3], 0) for idx in v_group])
     kdtree = cKDTree(centroids[:, :3])
-    _, indices = kdtree.query(centroids[:, :3], k=k + 1)
+    _, indices = kdtree.query(centroids[:, :3], k=min(k + 1,len(centroids)))
     distance_matrix = np.zeros([len(centroids), len(centroids)])-1  #
     for i, v in enumerate(v_group):
         nn_idx = indices[i, 1:]
@@ -162,7 +169,7 @@ def create_node_edges(points, k=10, max_distance=0.4):
             distance_matrix[i, nv] = np.min(nn_dist)
 
     kdtree = cKDTree(points[:,:3])
-    nn_D, nn_idx = kdtree.query(points[:,:3], k=k + 1)
+    nn_D, nn_idx = kdtree.query(points[:,:3], k=min(k + 1,len(points)))
     indices = nn_idx[:, 1:]
 
     eu = np.repeat(np.arange(len(points)), k)
@@ -186,27 +193,23 @@ def intermediate_segs(pcd):
     if point_count == 0:
         return False
 
-    # Create edge list
-    n_nodes = point_count
-    n_obs=2
-    n_edges=len(distance_pairs)
+    eu=distance_pairs[:,0].astype(np.uint32)
+    ev=distance_pairs[:,1].astype(np.uint32)
 
     # Edge weights based on inverse distance
-    edge_weight = 10./((distance_pairs[:,2]+0.01)/0.01)
-    node_weight = np.ones(n_nodes)
+    if USE_CPP:
+        edge_weight = 10 / ((distance_pairs[:,2] + 0.01) / 0.01) * (PR_REG_STRENGTH2/2)
+    else:
+        edge_weight = 10 / ((distance_pairs[:, 2] + 0.01) / 0.01)
 
-    # Cut-pursuit based on xy coordinates and 3D minimal point gaps
-    solution, components, in_component, energy_out, time_out = cut_pursuit(
-        n_nodes=n_nodes,
-        n_edges=n_edges,
-        n_obs=n_obs,
-        observation=pcd[:,:2],
-        eu=distance_pairs[:,0],
-        ev=distance_pairs[:,1],
-        edge_weight=edge_weight,
-        node_weight=node_weight,
-        lambda_=PR_REG_STRENGTH2,
-        verbose=True
+    in_component = perform_cut_pursuit(
+        reg_strength=PR_REG_STRENGTH2,
+        D=2,
+        pc_vec=pcd[:, :2].astype(np.float32),
+        edge_weights=edge_weight.astype(np.float32),
+        Eu=eu,
+        Ev=ev,
+        verbose=True,
     )
     return in_component
 
@@ -269,6 +272,9 @@ def final_segs(pcd):
 
         # Extract features for each tree segment (e.g. convexhull)
         nGroups=len(groupVGroup)
+        if nGroups==1:
+            return np.zeros(len(pcd))
+        
         groupFeatures=np.zeros([nGroups,5])
         groupHulls=[None]*nGroups
         for i in range(nGroups):
@@ -295,7 +301,8 @@ def final_segs(pcd):
         # Search nearest k tree segments for each tree segments
         kdtree = cKDTree(groupFeatures[:, :2])
         groupNNCDs, groupNNIdxC = kdtree.query(groupFeatures[:, :2], k=min(len(groupFeatures),PR_MIN_NN3))
-
+        groupNNCDs = np.transpose(groupNNCDs)[:, np.newaxis] if groupNNCDs.ndim == 1 else groupNNCDs
+        
         sigmaD=np.mean(groupNNCDs[:,1]) # Mean centroid distance between segments
 
         toMergeIds=np.zeros(nGroups,dtype=np.int32)
@@ -323,11 +330,12 @@ def final_segs(pcd):
         # Search nearest k tree segments for remaining segments
         kdtree = cKDTree(groupFeatures[remainIds, :2])
         _, groupNNIdx = kdtree.query(groupFeatures[toMergeIds, :2], k=min(PR_MIN_NN3, len(remainIds)))
-
+        groupNNIdx=np.transpose(groupNNIdx)[:,np.newaxis]  if groupNNIdx.ndim ==1 else groupNNIdx
+        nNNs = groupNNIdx.shape[1]
+        
         # Calculate similarity score based on gaps and overlaps
         for i,toMergeId in enumerate(toMergeIds):
             currentClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[toMergeId]]),:]
-            nNNs = groupNNIdx.shape[1]
             filterMetrics = np.zeros([nNNs, 5])
             for j in range(nNNs):
                 remainId = remainIds[groupNNIdx[i, j]]
@@ -380,17 +388,17 @@ def final_segs(pcd):
     unmergeIds = np.where(np.isin(clusterMapU, unmergeIds))[0]
     mergedRemainIds = np.where(np.isin(clusterMapU, mergedRemainIds))[0]
 
-    kdtree = cKDTree(groupFeatures[unmergeIds, :2])
-    _, groupNNIdx = kdtree.query(groupFeatures[mergedRemainIds, :2], k=min(PR_MIN_NN3, len(mergedRemainIds)))
-
+    kdtree = cKDTree(groupFeatures[mergedRemainIds, :2])
+    _, groupNNIdx = kdtree.query(groupFeatures[unmergeIds, :2], k=min(PR_MIN_NN3, len(mergedRemainIds)))
+    groupNNIdx = np.transpose(groupNNIdx)[:, np.newaxis] if groupNNIdx.ndim == 1 else groupNNIdx
     nNNs = groupNNIdx.shape[1]
 
     for i,unmergeId in enumerate(unmergeIds):
-        currentClusterCentroids = clusterGroupMap[np.concatenate(clusterMapVGroup[unmergeId]),:]
+        currentClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[unmergeId]]),:]
         filterMetrics = np.zeros([nNNs, 2])
         for j in range(nNNs):
             mergedRemainId = mergedRemainIds[groupNNIdx[i, j]]
-            nnClusterCentroids = clusterGroupMap[np.concatenate(clusterMapVGroup[mergedRemainId]),:]
+            nnClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[mergedRemainId]]),:]
 
             kdtree = cKDTree(currentClusterCentroids[:, :3])
             nnDs, idx = kdtree.query(nnClusterCentroids[:, :3])
@@ -399,8 +407,10 @@ def final_segs(pcd):
             filterMetrics[j,:]=np.array([min3DSpacing, mergedRemainId])
 
         filterMinSpacingIdx=np.argmin(filterMetrics[:,0])
-        mergeNNId=groupU[filterMetrics[filterMinSpacingIdx,-1]]
+        mergeNNId=groupU[int(filterMetrics[filterMinSpacingIdx,-1])]
         clusterGroupIds[groupVGroup[unmergeIds[i]]]=mergeNNId
+
+    _,clusterGroupIds=np.unique(clusterGroupIds,return_inverse=True)
     return clusterGroupIds
 
 def decimate_pcd(columns, min_res):
@@ -413,6 +423,139 @@ def decimate_pcd(columns, min_res):
     _, block_idx_uidx, block_inverse_idx = np.unique(np.floor(columns[:, :3] / min_res).astype(np.int32), axis=0, return_index=True, return_inverse=True)
     return block_idx_uidx, block_inverse_idx
 
+def process_point_cloud(pcd):
+    """Process a point cloud through the segmentation pipeline.
+
+    Args:
+        pcd: numpy array of shape (n, 3) containing x, y, z coordinates
+
+    Returns:
+        A tuple containing:
+        - init_labels: initial segmentation labels
+        - intermediate_labels: intermediate segmentation labels
+        - final_labels: final segmentation labels
+        - dec_inverse_idx: indices to map decimated points back to original
+        - dec_inverse_idx2: indices for intermediate decimation
+    """
+    # Center the point cloud
+    pcd = pcd - np.mean(pcd, axis=0)
+
+    # Initial decimation and segmentation in 3D
+    dec_idx_uidx, dec_inverse_idx = decimate_pcd(pcd, PR_DECIMATE_RES1)
+    pcd_dec = pcd[dec_idx_uidx]
+    init_labels = init_segs(pcd_dec)
+
+    # Intermediate decimation and segmentation in 2D
+    dec_idx_uidx2, dec_inverse_idx2 = decimate_pcd(pcd, PR_DECIMATE_RES2)
+    pcd_dec2 = pcd[dec_idx_uidx2]
+    intermediate_labels = intermediate_segs(
+        np.concatenate([pcd_dec2, init_labels[dec_inverse_idx][dec_idx_uidx2][:, np.newaxis]], axis=-1)
+    )
+
+    # Final segmentation based on segment similarity
+    final_labels = final_segs(
+        np.concatenate([
+            pcd_dec,
+            init_labels[:, np.newaxis],
+            intermediate_labels[dec_inverse_idx2][dec_idx_uidx][:, np.newaxis]
+        ], axis=-1)
+    )
+
+    return init_labels, intermediate_labels, final_labels, dec_inverse_idx, dec_inverse_idx2
+
+
+def process_las_file(path_to_las):
+    """Process a LAS/LAZ file."""
+    print('*******Processing LAS/LAZ******* ' + path_to_las)
+    las = laspy.read(path_to_las)
+
+    # Extract point cloud
+    pcd = np.transpose([las.x, las.y, las.z])
+
+    # Process the point cloud
+    init_labels, intermediate_labels, final_labels, dec_inverse_idx, dec_inverse_idx2 = process_point_cloud(pcd)
+
+    # Add labels to LAS file
+    las.add_extra_dim(laspy.ExtraBytesParams(name="init_segs", type="int32", description="init_segs"))
+    las.init_segs = init_labels[dec_inverse_idx]
+
+    las.add_extra_dim(laspy.ExtraBytesParams(name="intermediate_segs", type="int32", description="intermediate_segs"))
+    las.intermediate_segs = intermediate_labels[dec_inverse_idx2]
+
+    las.add_extra_dim(laspy.ExtraBytesParams(name="final_segs", type="int32", description="final_segs"))
+    las.final_segs = final_labels[dec_inverse_idx]
+
+    # Save output
+    las.write(path_to_las[:-4] + "_treeiso.laz")
+    print('*******End processing*******')
+
+
+def process_csv_file(path_to_csv):
+    """Process a CSV/TXT file."""
+    print('*******Processing CSV/TXT******* ' + path_to_csv)
+
+    # Read the CSV file
+    df, pcd, has_header = read_csv_file(path_to_csv)
+    if df is None:
+        print(f"Unable to process {path_to_csv}. Skipping...")
+        return
+
+    # Process the point cloud
+    init_labels, intermediate_labels, final_labels, dec_inverse_idx, dec_inverse_idx2 = process_point_cloud(pcd)
+
+    # Create output dataframe
+    if has_header:
+        output_df = df.copy()
+    else:
+        output_df = pd.DataFrame(df.values, columns=[f'col{i + 1}' for i in range(df.shape[1])])
+
+    # Add segmentation results
+    output_df['init_segs'] = init_labels[dec_inverse_idx]
+    output_df['intermediate_segs'] = intermediate_labels[dec_inverse_idx2]
+    output_df['final_segs'] = final_labels[dec_inverse_idx]
+
+    # Save the results
+    output_path = path_to_csv[:-4] + "_treeiso" + os.path.splitext(path_to_csv)[1]
+    if has_header:
+        output_df.to_csv(output_path, index=False)
+    else:
+        output_df.to_csv(output_path, index=False, header=False)
+
+    print('*******End processing*******')
+
+
+def read_csv_file(path_to_csv):
+    # First try to detect if the file has a commented header
+    first_line=""
+    with open(path_to_csv, 'r') as f:
+        first_line = f.readline().strip()
+    tokens = first_line.strip().split()
+    if not tokens:
+        return None
+    if (tokens[0].lstrip('-').replace('.','',1)).isnumeric():
+        df = pd.read_csv(path_to_csv,header=None, sep=' |;|,|\\t')
+        pcd=df.to_numpy()[:,:3]
+        return df,pcd,False
+    else:
+        if first_line.startswith('//') or first_line.startswith('#'):
+            first_line=first_line.lstrip('/#').strip()
+
+        try:
+            df = pd.read_csv(path_to_csv, header=0, sep=' |;|,|\\t')
+        except Exception as e:
+            print(f"Csv header parsing failed: {e}")
+            return None, None, None
+
+        column_names = first_line.split()
+        column_names_lower = [col.lower() for col in column_names]
+        if 'x' in column_names_lower and 'y' in column_names_lower and 'z' in column_names_lower:
+            x_idx = column_names_lower.index('x')
+            y_idx = column_names_lower.index('y')
+            z_idx = column_names_lower.index('z')
+            pcd = np.array(df.iloc[:, [x_idx, y_idx, z_idx]])
+            return df, pcd, True
+
+
 def main():
     """Main function to process laser scanning point clouds."""
     print('Individual-tree isolation (treeiso) from terrestrial laser scanning point clouds')
@@ -421,39 +564,21 @@ def main():
     print('The University of Lethbridge - Artemis Lab')
     print('Copyright - Zhouxin Xi (zhouxin.xi@uleth.ca) and Chris Hopkinson (c.hopkinson@uleth.ca)')
 
-    path_input = str(input('Please enter path including all scan files (file name format: *.las/laz): '))
-    pathes_to_las=glob(os.path.join(path_input, "*.la[sz]"))
-    if len(pathes_to_las) == 0:
-        print('Failed to find the las/laz files from your input directory')
-        return
+    path_input = str(input('Please enter path including all scan files (file name format: *.las/laz or *.csv): '))
+
+    # Process LAS/LAZ files
+    pathes_to_las = glob(os.path.join(path_input, "*.la[sz]"))
     for path_to_las in pathes_to_las:
-        print('*******Processing******* ' + path_to_las)
-        las = laspy.read(path_to_las)
+        process_las_file(path_to_las)
 
-        pcd=np.transpose([las.x,las.y,las.z])
-        pcd=pcd-np.mean(pcd[:,:3],axis=0)
+    # Process CSV/TXT files
+    pathes_to_csv = glob(os.path.join(path_input, "*.csv"))
+    for path_to_csv in pathes_to_csv:
+        process_csv_file(path_to_csv)
 
-        dec_idx_uidx, dec_inverse_idx = decimate_pcd(pcd[:, :3], PR_DECIMATE_RES1)  # reduce points first
-        pcd_dec = pcd[dec_idx_uidx]
-
-        # Initial segmentation in 3D
-        init_labels=init_segs(pcd_dec)
-        las.add_extra_dim(laspy.ExtraBytesParams(name="init_segs", type="int32", description="init_segs"))
-        las.init_segs = init_labels[dec_inverse_idx]
-
-        dec_idx_uidx2, dec_inverse_idx2 = decimate_pcd(pcd[:, :3], PR_DECIMATE_RES2)  # reduce points first
-        pcd_dec2 = pcd[dec_idx_uidx2]
-        # Intermediate segmentation in 2D
-        intermediate_labels=intermediate_segs(np.concatenate([pcd_dec2[:, :3],init_labels[dec_inverse_idx][dec_idx_uidx2][:,np.newaxis]],axis=-1))
-        las.add_extra_dim(laspy.ExtraBytesParams(name="intermediate_segs", type="int32", description="intermediate_segs"))
-        las.intermediate_segs = intermediate_labels[dec_inverse_idx]
-
-        # Final segmentation based on segment similarity
-        labels=final_segs(np.concatenate([pcd_dec,init_labels[:,np.newaxis],intermediate_labels[:,np.newaxis]],axis=-1))
-        las.add_extra_dim(laspy.ExtraBytesParams(name="final_segs", type="int32", description="final_segs"))
-        las.final_segs = labels[dec_inverse_idx]
-        las.write(path_to_las[:-4]+"_treeiso.laz")
-        print('*******End processing*******')
+    if len(pathes_to_las) == 0 and len(pathes_to_csv) == 0:
+        print('Failed to find the las/laz or csv/txt files from your input directory')
+        return
 
 if __name__ == '__main__':
     main()
