@@ -69,4 +69,4 @@ Landrieu, L., & Obozinski, G. (2017). Cut Pursuit: Fast Algorithms to Learn Piec
 
 ## License
 
-[Specify your license here]
+[MIT]
