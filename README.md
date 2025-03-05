@@ -145,8 +145,18 @@ When prompted, enter the path to your directory containing LAS/LAZ files. The ou
 
 An R script suggested by Gergo Dioszegi uses the CloudCompare command-line interface to automate processing. This script remains untested.
 
+## 5. CloudCompare Plugin
+The speed comparison between the 2023 and 2025 versions and the time profiling for the 2025 version are shown in the figure below:
 
-## Example isolated trees: 
+| **Speed Comparison** | **Time Profiling** |
+|:--------------------:|:------------------:|
+| ![Speed Comparison](https://github.com/user-attachments/assets/dc808ede-bfaf-4484-85e6-8e7a94059261) | ![Time Profiling](https://github.com/user-attachments/assets/1b90b0ee-42ad-4d56-805c-0a54c81b7eb8) |
+
+The time complexity of the cut-pursuit algorithm is approximately *O(log n)* iterations multiplied by *O(m+n)* per iteration.
+
+
+## 6. Example isolated trees: 
+
 |Raw TLS Example1| After treeiso isolation| Top view|
 |:---:|:---:|:---:|
 |<img width="635" alt="demo1_crop" src="https://user-images.githubusercontent.com/8785889/182312969-7c81949f-67fa-409b-bb24-73b094917c52.png">|<img width="635" alt="demo1_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182313130-7d6ba091-b2cb-4482-ae21-3ee2ec5bb34e.png">|<img width="700" alt="demo1_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182313150-a14e7a3e-79b0-4d40-a400-ce89520e5e4d.png">|
@@ -160,6 +170,20 @@ An R script suggested by Gergo Dioszegi uses the CloudCompare command-line inter
 |Raw TLS Example3| After treeiso isolation| Top view|
 |:---:|:---:|:---:|
 |<img width="1228" alt="NPoplar2_crop" src="https://user-images.githubusercontent.com/8785889/182318128-ddeac093-f48d-4e69-a9b2-560f5a25335e.png">|<img width="1228" alt="NPoplar2_treeiso_crop" src="https://user-images.githubusercontent.com/8785889/182318163-290e0663-4e0a-455c-85d5-5160f00a8e33.png">|<img width="1026" alt="NPoplar2_treeiso2_crop" src="https://user-images.githubusercontent.com/8785889/182318398-fc428e17-1fd7-415c-9594-e0b9e3f0c340.png">|
+
+## 7. Visual pros and cons:
+
+![image](https://github.com/user-attachments/assets/c10659a7-b64e-4e1e-83d6-eeed9968c7e3)
+
+
+### Note
+
+*treeiso* is not intended to be a perfect, all-in-one solution. Instead, it is designed as an interactive tool that allows users to re-run the algorithm on problematic areas or manually adjust the segmentation results within CloudCompare.
+
+
+
+
+
 
 
 
