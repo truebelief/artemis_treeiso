@@ -1,0 +1,8 @@
+laspy
+numpy<2.0
+scipy
+numpy-indexed
+scikit-image
+PyMaxflow
+pandas
+cut_pursuit_py

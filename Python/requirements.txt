@@ -1,0 +1,6 @@
+laspy
+numpy<2.0
+numpy-indexed
+scipy
+scikit-image
+PyMaxflow

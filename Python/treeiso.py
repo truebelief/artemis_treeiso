@@ -9,7 +9,7 @@ import numpy_indexed as npi
 from scipy.spatial import cKDTree, ConvexHull
 from skimage import draw
 
-from cut_pursuit_L2 import perform_cut_pursuit, cut_pursuit
+from cut_pursuit_L0 import perform_cut_pursuit, cut_pursuit
 
 # Parameters
 PR_REG_STRENGTH1 = 1.0  # lambda1
