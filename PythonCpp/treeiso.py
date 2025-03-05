@@ -15,7 +15,7 @@ import pandas as pd
 PR_REG_STRENGTH1 = 1.0  # lambda1
 PR_MIN_NN1 = 5  # K1: key parameter
 
-PR_REG_STRENGTH2 = 20.0  # lambda2: key parameter
+PR_REG_STRENGTH2 = 15.0  # lambda2: key parameter
 PR_MIN_NN2 = 20  # K2: key parameter
 
 PR_DECIMATE_RES1 = 0.05  # For speed optimization
@@ -32,7 +32,7 @@ PR_INIT_STEM_REL_LENGTH_THRESH = 1.5  # No need to change
 # Try to import the C++ version first, fall back to Python if not available
 USE_CPP = True
 try:
-    from cut_pursuit import perform_cut_pursuit
+    from cut_pursuit_py import perform_cut_pursuit
     USE_CPP = True
     print("Using optimized C++ implementation of Cut-Pursuit")
 except ImportError as e:
@@ -198,7 +198,7 @@ def intermediate_segs(pcd):
 
     # Edge weights based on inverse distance
     if USE_CPP:
-        edge_weight = 10 / ((distance_pairs[:,2] + 0.01) / 0.01) * (PR_REG_STRENGTH2/2)
+        edge_weight = 10 / ((distance_pairs[:,2] + 0.01) / 0.01) * (PR_REG_STRENGTH2)
     else:
         edge_weight = 10 / ((distance_pairs[:, 2] + 0.01) / 0.01)
 
