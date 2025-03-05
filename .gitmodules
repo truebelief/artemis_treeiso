@@ -1,3 +1,6 @@
 [submodule "CloudCompare"]
 	path = CloudCompare
 	url = https://github.com/truebelief/cc-treeiso-plugin
+[submodule "cut_pursuit_py"]
+	path = cut_pursuit_py
+	url = https://github.com/truebelief/cut_pursuit_py
