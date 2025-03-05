@@ -49,6 +49,8 @@ This tool relies on the cut-pursuit algorithm, please also consider citing:
 ├── PythonCPP                               # Python source code accelerated by C++ (Recommended)
 │   ├── treeiso.py                          # Main Python program
 │   └── cut_pursuit_L0.py                   # Backup simplified cut-pursuit (L0 norm only)
+├── R                                       # R script
+│   ├── treeiso_example.R                   # An R example
 ├── CloudCompare                            # CloudCompare plugin (external link)
 ├── cut_pursuit_py                          # C++ cut-pursuit Python binder (external link)
 ├── .gitmodules                             # External repository declarations
@@ -138,6 +140,10 @@ Run the `treeiso.py` script in the `Python` folder:
 python treeiso.py
 ```
 When prompted, enter the path to your directory containing LAS/LAZ files. The output file will be saved in the same input directory.
+
+## 4. R Version
+
+An R script suggested by Gergo Dioszegi uses the CloudCompare command-line interface to automate processing. This script remains untested.
 
 
 ## Example isolated trees: 
