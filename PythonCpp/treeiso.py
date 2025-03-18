@@ -249,7 +249,6 @@ def final_segs(pcd):
 
     # Group larger segments based on intermediate_segs
     clusterGroupMap=np.concatenate([centroids,pcd[clusterUIdx,-3:-1]],axis=-1)
-    clusterMapU, clusterMapV = np.unique(clusterGroupMap[:, -1], return_inverse=True)
     _, clusterMapVGroup = npi.group_by(clusterGroupMap[:, -1].astype(np.int32), np.arange(len(clusterGroupMap[:, -1])))
 
     clusterGroupIds=pcd[clusterUIdx,-1][clusterUIdxInverse]
@@ -378,7 +377,6 @@ def final_segs(pcd):
         mergedRemainIds.extend(groupU[remainIds])
         # Re-group tree segments based on updated tree IDs
         clusterGroupMap[:, -1]=clusterGroupIds[clusterUIdx]
-        clusterMapU, clusterMapV = np.unique(clusterGroupMap[:, -1], return_inverse=True)
         _, clusterMapVGroup = npi.group_by(clusterGroupMap[:, -1].astype(np.int32), np.arange(len(clusterGroupMap[:, -1])))
         iter = iter + 1
         
