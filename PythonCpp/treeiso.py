@@ -241,7 +241,7 @@ def final_segs(pcd):
 
     # Group smallest clusters based on init_segs
     clusterIdx = pcd[:, -3]
-    _,clusterUIdx=np.unique(clusterIdx,return_index=True)
+    _,clusterUIdx,clusterUIdxInverse=np.unique(clusterIdx,return_index=True,return_inverse=True)
     clusterU, clusterVGroup = npi.group_by(clusterIdx.astype(np.int32), np.arange(len(clusterIdx)))
     centroids=np.vstack([np.mean(pcd[cluster_group_idx, :3], 0) for i,cluster_group_idx in enumerate(clusterVGroup)])
 
@@ -252,6 +252,7 @@ def final_segs(pcd):
     clusterMapU, clusterMapV = np.unique(clusterGroupMap[:, -1], return_inverse=True)
     _, clusterMapVGroup = npi.group_by(clusterGroupMap[:, -1].astype(np.int32), np.arange(len(clusterGroupMap[:, -1])))
 
+    clusterGroupIds=pcd[clusterUIdx,-1][clusterUIdxInverse]
 
     iter=1
     toMergeIds=np.array([0,0])
@@ -267,7 +268,7 @@ def final_segs(pcd):
         prevToMergeIds=toMergeIds.copy()
 
         # Group tree segments based on temporal tree IDs (clusterGroupIds)
-        groupU,groupV=np.unique(clusterGroupIds,return_inverse=True)
+        groupU,groupV=np.unique(clusterGroupIds.astype(np.int32),return_inverse=True)
         _,groupVGroup = npi.group_by(clusterGroupIds.astype(np.int32), np.arange(len(clusterGroupIds)))
 
         # Extract features for each tree segment (e.g. convexhull)
@@ -374,41 +375,43 @@ def final_segs(pcd):
                 continue
             clusterGroupIds[groupVGroup[toMergeIds[i]]]=mergeNNId # Update the point-level tree Ids
 
+        mergedRemainIds.extend(groupU[remainIds])
         # Re-group tree segments based on updated tree IDs
         clusterGroupMap[:, -1]=clusterGroupIds[clusterUIdx]
         clusterMapU, clusterMapV = np.unique(clusterGroupMap[:, -1], return_inverse=True)
         _, clusterMapVGroup = npi.group_by(clusterGroupMap[:, -1].astype(np.int32), np.arange(len(clusterGroupMap[:, -1])))
         iter = iter + 1
-        mergedRemainIds.extend(groupU[remainIds])
+        
 
     # For the remaining unmerged non-stem segments, merge each to the nearest segment with minimal 3D point gap
     unmergeIds=np.setdiff1d(groupU,mergedRemainIds)
-    mergedRemainIds=np.unique(mergedRemainIds)
-
-    unmergeIds = np.where(np.isin(clusterMapU, unmergeIds))[0]
-    mergedRemainIds = np.where(np.isin(clusterMapU, mergedRemainIds))[0]
-
-    kdtree = cKDTree(groupFeatures[mergedRemainIds, :2])
-    _, groupNNIdx = kdtree.query(groupFeatures[unmergeIds, :2], k=min(PR_MIN_NN3, len(mergedRemainIds)))
-    groupNNIdx = np.transpose(groupNNIdx)[:, np.newaxis] if groupNNIdx.ndim == 1 else groupNNIdx
-    nNNs = groupNNIdx.shape[1]
-
-    for i,unmergeId in enumerate(unmergeIds):
-        currentClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[unmergeId]]),:]
-        filterMetrics = np.zeros([nNNs, 2])
-        for j in range(nNNs):
-            mergedRemainId = mergedRemainIds[groupNNIdx[i, j]]
-            nnClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[mergedRemainId]]),:]
-
-            kdtree = cKDTree(currentClusterCentroids[:, :3])
-            nnDs, idx = kdtree.query(nnClusterCentroids[:, :3])
-
-            min3DSpacing = min(nnDs)
-            filterMetrics[j,:]=np.array([min3DSpacing, mergedRemainId])
-
-        filterMinSpacingIdx=np.argmin(filterMetrics[:,0])
-        mergeNNId=groupU[int(filterMetrics[filterMinSpacingIdx,-1])]
-        clusterGroupIds[groupVGroup[unmergeIds[i]]]=mergeNNId
+    if len(unmergeIds)>0:
+        mergedRemainIds=np.unique(mergedRemainIds)
+    
+        unmergeIds = np.where(np.isin(clusterMapU, unmergeIds))[0]
+        mergedRemainIds = np.where(np.isin(clusterMapU, mergedRemainIds))[0]
+    
+        kdtree = cKDTree(groupFeatures[mergedRemainIds, :2])
+        _, groupNNIdx = kdtree.query(groupFeatures[unmergeIds, :2], k=min(PR_MIN_NN3, len(mergedRemainIds)))
+        groupNNIdx = np.transpose(groupNNIdx)[:, np.newaxis] if groupNNIdx.ndim == 1 else groupNNIdx
+        nNNs = groupNNIdx.shape[1]
+    
+        for i,unmergeId in enumerate(unmergeIds):
+            currentClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[unmergeId]]),:]
+            filterMetrics = np.zeros([nNNs, 2])
+            for j in range(nNNs):
+                mergedRemainId = mergedRemainIds[groupNNIdx[i, j]]
+                nnClusterCentroids = clusterGroupMap[np.concatenate([clusterMapVGroup[mergedRemainId]]),:]
+    
+                kdtree = cKDTree(currentClusterCentroids[:, :3])
+                nnDs, idx = kdtree.query(nnClusterCentroids[:, :3])
+    
+                min3DSpacing = min(nnDs)
+                filterMetrics[j,:]=np.array([min3DSpacing, mergedRemainId])
+    
+            filterMinSpacingIdx=np.argmin(filterMetrics[:,0])
+            mergeNNId=groupU[int(filterMetrics[filterMinSpacingIdx,-1])]
+            clusterGroupIds[groupVGroup[unmergeIds[i]]]=mergeNNId
 
     _,clusterGroupIds=np.unique(clusterGroupIds,return_inverse=True)
     return clusterGroupIds
