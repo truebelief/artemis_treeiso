@@ -28,6 +28,7 @@ PR_MIN_NN3 = 20  # trivial
 PR_SCORE_CANDIDATE_THRESH = 0.7  # No need to change
 PR_INIT_STEM_REL_LENGTH_THRESH = 1.5  # No need to change
 
+PR_MAX_OUTLIER_GAP=3.0#trivial: post-processing to remove isolated points with great gaps
 
 # Try to import the C++ version first, fall back to Python if not available
 USE_CPP = True
@@ -465,7 +466,7 @@ def process_point_cloud(pcd):
     return init_labels, intermediate_labels, final_labels, dec_inverse_idx, dec_inverse_idx2
 
 
-def process_las_file(path_to_las):
+def process_las_file(path_to_las, if_isolate_outlier=False):
     """Process a LAS/LAZ file."""
     print('*******Processing LAS/LAZ******* ' + path_to_las)
     las = laspy.read(path_to_las)
@@ -486,6 +487,10 @@ def process_las_file(path_to_las):
     las.add_extra_dim(laspy.ExtraBytesParams(name="final_segs", type="int32", description="final_segs"))
     las.final_segs = final_labels[dec_inverse_idx]
 
+    if if_isolate_outlier:
+        connected_labels=isolate_gaps(pcd_dec, PR_MAX_OUTLIER_GAP)
+        _,final_labels=np.unique(np.transpose([final_labels,connected_labels]),axis=0,return_inverse=True)
+    
     # Save output
     las.write(path_to_las[:-4] + "_treeiso.laz")
     print('*******End processing*******')
@@ -556,6 +561,32 @@ def read_csv_file(path_to_csv):
             pcd = np.array(df.iloc[:, [x_idx, y_idx, z_idx]])
             return df, pcd, True
 
+def isolate_gaps(pcd,max_gap,search_K=20):
+    pcd = pcd[:, :3] - np.mean(pcd[:, :3], axis=0)
+    point_count = len(pcd)
+    if point_count == 0:
+        return False
+
+    K=min(search_K,len(pcd))
+    kdtree = cKDTree(pcd[:, :3])
+    nn_D, nn_idx = kdtree.query(pcd[:, :3], k=K)
+
+    # Remove self-connections
+    indices = nn_idx[:, 1:]
+    nn_D = nn_D[:, 1:]
+
+    # Create edge list
+    eu = np.repeat(np.arange(len(pcd)), K-1)
+    ev = indices.ravel()
+    nn_D=nn_D.ravel()
+    inlier_ind=nn_D<max_gap
+    eu=eu[inlier_ind]
+    ev=ev[inlier_ind]
+
+    adjacency_matrix = csr_matrix((np.ones(len(eu), dtype=int), (eu, ev)), shape=(point_count, point_count))
+    n_components, labels = connected_components(csgraph=adjacency_matrix,directed=False,connection='weak',return_labels=True)
+
+    return labels
 
 def main():
     """Main function to process laser scanning point clouds."""
