@@ -7,9 +7,11 @@ import laspy
 import numpy as np
 import numpy_indexed as npi
 from scipy.spatial import cKDTree, ConvexHull
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
+
 from skimage import draw
 import pandas as pd
-
 
 # Parameters
 PR_REG_STRENGTH1 = 1.0  # lambda1
